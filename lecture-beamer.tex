@@ -1,0 +1,236 @@
+% !TeX program = xelatex
+% 编译两次以更新目录及总页数。UTF-8，推荐 TeX Live。
+\documentclass[aspectratio=169,11pt,notheorems]{beamer}
+\usepackage[UTF8,fontset=fandol]{ctex}
+\usepackage{booktabs,listings,tikz,algpseudocode}
+\usetikzlibrary{arrows.meta,positioning}
+\usefonttheme{professionalfonts}
+
+% ── 配色与画布 ─────────────────────────────
+\definecolor{Paper}{HTML}{F7F7F7}
+\definecolor{Ink}{HTML}{23373D}
+\definecolor{Navy}{HTML}{1D486F}
+\definecolor{Accent}{HTML}{CB4542}
+\definecolor{Forest}{HTML}{34703B}
+\definecolor{Track}{HTML}{CED8DE}
+\setbeamercolor{normal text}{fg=Ink,bg=Paper}
+\setbeamercolor{structure}{fg=Navy}
+\setbeamercolor{frametitle}{fg=white,bg=Navy}
+\setbeamercolor{progress}{fg=Accent,bg=Track}
+\setbeamercolor{footline}{fg=Ink,bg=Paper}
+\setbeamerfont{frametitle}{size=\large,series=\bfseries}
+\setbeamersize{text margin left=10mm,text margin right=10mm}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{headline}{}
+\setbeamertemplate{section in toc}{%
+  \leavevmode\makebox[2.3em][l]{\color{Navy}\bfseries\inserttocsectionnumber}%
+  \inserttocsection\par\vspace{.5em}}
+\setbeamertemplate{itemize item}{\raise.2ex\hbox{\color{Ink}\rule{.7mm}{.7mm}}}
+\setbeamertemplate{itemize subitem}{\color{Navy}\textendash}
+\setbeamertemplate{enumerate item}{\color{Navy}\bfseries\insertenumlabel.}
+\setbeamertemplate{enumerate subitem}{\color{Navy}\insertsubenumlabel.}
+
+% ── 页眉、进度线、页码 ─────────────────────
+\newcommand{\SlideProgress}{%
+  \pgfmathsetlengthmacro{\DoneWidth}{%
+    \paperwidth*min(1,\insertframenumber/max(1,\inserttotalframenumber))}%
+  \begin{beamercolorbox}[wd=\paperwidth,ht=.35pt,dp=0pt]{progress}%
+    \color{Accent}\rule{\DoneWidth}{.35pt}%
+  \end{beamercolorbox}}
+\setbeamertemplate{frametitle}{%
+  \nointerlineskip
+  \begin{beamercolorbox}[wd=\paperwidth,sep=2.3mm,leftskip=1.1mm]{frametitle}%
+    \usebeamerfont{frametitle}\insertframetitle\par
+    \ifx\insertframesubtitle\empty\else
+      {\footnotesize\mdseries\insertframesubtitle\par}%
+    \fi
+  \end{beamercolorbox}%
+  \nointerlineskip\SlideProgress}
+\setbeamertemplate{footline}{%
+  \begin{beamercolorbox}[wd=\paperwidth,ht=3mm,dp=3mm,rightskip=2.5mm plus 1fil]{footline}%
+    \hfill\scriptsize\insertframenumber/\inserttotalframenumber
+  \end{beamercolorbox}}
+
+% ── 封面与分节页 ───────────────────────────
+\setbeamertemplate{title page}{%
+  {\Large\bfseries\inserttitle\par}
+  \vspace{.55em}{\large\insertsubtitle\par}
+  \vspace{1em}{\color{Accent}\rule{\linewidth}{.45pt}\par}
+  \vspace{1.2em}{\small\insertauthor\par}
+  \vspace{.65em}{\footnotesize\insertinstitute\par\insertdate\par}}
+\newcommand{\ChapterPage}[1]{%
+  \begin{frame}[plain,noframenumbering]
+    \centering
+    \begin{minipage}{.62\textwidth}
+      {\large\bfseries #1\par}\vspace{.5em}
+      {\color{Accent}\rule{2.5mm}{.45pt}}%
+      {\color{Track}\rule{\dimexpr\linewidth-2.5mm\relax}{.45pt}}
+    \end{minipage}
+  \end{frame}}
+\AtBeginSection[]{\ChapterPage{第 \insertsectionnumber\ 部分：\insertsectionhead}}
+
+% ── 块、代码与图形 ─────────────────────────
+\setbeamercolor{block title}{fg=Navy,bg=Navy!12!Paper}
+\setbeamercolor{block body}{fg=Ink,bg=Navy!5!Paper}
+\setbeamercolor{block title example}{fg=Forest,bg=Forest!13!Paper}
+\setbeamercolor{block body example}{fg=Ink,bg=Forest!6!Paper}
+\setbeamercolor{block title alerted}{fg=Accent,bg=Accent!13!Paper}
+\setbeamercolor{block body alerted}{fg=Ink,bg=Accent!6!Paper}
+\newcommand{\PanelStart}[1]{%
+  \par\medskip
+  \begin{beamercolorbox}[sep=1.2mm,leftskip=1mm]{block title#1}%
+    \bfseries\insertblocktitle
+  \end{beamercolorbox}%
+  \nointerlineskip
+  \begin{beamercolorbox}[sep=1.4mm,leftskip=.8mm,rightskip=.8mm]{block body#1}}
+\newcommand{\PanelEnd}{\end{beamercolorbox}\par\smallskip}
+\setbeamertemplate{block begin}{\PanelStart{}}
+\setbeamertemplate{block end}{\PanelEnd}
+\setbeamertemplate{block example begin}{\PanelStart{ example}}
+\setbeamertemplate{block example end}{\PanelEnd}
+\setbeamertemplate{block alerted begin}{\PanelStart{ alerted}}
+\setbeamertemplate{block alerted end}{\PanelEnd}
+\newtheorem{theorem}{定理}[section]
+\newtheorem{definition}[theorem]{定义}
+\renewcommand{\proofname}{证明}
+\setbeamercolor{alerted text}{fg=Accent}
+\lstdefinestyle{lecture}{
+  basicstyle=\ttfamily\small, backgroundcolor=\color{Navy!5!Paper},
+  keywordstyle=\color{Navy}\bfseries, commentstyle=\color{Forest},
+  stringstyle=\color{Accent}, numbers=left, numberstyle=\tiny\color{Navy},
+  xleftmargin=6mm, framexleftmargin=5mm, frame=single,
+  rulecolor=\color{Track}, showstringspaces=false, breaklines=true, columns=fullflexible
+}
+\tikzset{
+  lecture step/.style={draw=Navy,fill=Navy!6!Paper,rounded corners=1.3mm,
+    align=center,minimum height=10mm,text width=22mm,font=\small},
+  lecture focus/.style={lecture step,draw=Accent,fill=Accent!7!Paper},
+  lecture flow/.style={-{Stealth[length=2mm]},draw=Navy,semithick}
+}
+
+% ── 替换以下信息与示例内容 ─────────────────
+\title{讲义标题：从问题到实现}
+\subtitle{副标题或一句话摘要}
+\author{主讲人：姓名}
+\institute{单位／课程名称}
+\date{\today}
+
+\begin{document}
+\begin{frame}[plain,noframenumbering]
+  \titlepage
+\end{frame}
+
+\begin{frame}{目录}
+  \tableofcontents
+\end{frame}
+
+\section{问题与记号}
+
+\begin{frame}{背景与目标}{可选的小标题}
+  \begin{itemize}
+    \item 输入：一组观测及其特征表示。
+    \item 输出：每个样本所属的类别。
+      \begin{itemize}
+        \item 根据距离度量比较样本。
+        \item 用统一指标评估结果。
+      \end{itemize}
+    \item \alert{注意：}正式比较之前，统一预处理和评价条件。
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{定义、定理与证明}
+  \begin{definition}
+    若 $\sum_{i=1}^{n}x_i^2=1$，则称 $x$ 为单位向量。
+  \end{definition}
+  \begin{theorem}[单位向量的内积]
+    对任意单位向量 $x,y$，有 $|x^\top y|\leq 1$。
+  \end{theorem}
+  \begin{proof}
+    由柯西–施瓦茨不等式，$|x^\top y|\leq\|x\|_2\|y\|_2=1$。
+  \end{proof}
+\end{frame}
+
+\begin{frame}{说明块与枚举}
+  \begin{exampleblock}{示例}
+    向量 $(3,4)$ 归一化后得到 $(0.6,0.8)$。
+  \end{exampleblock}
+  \begin{alertblock}{边界条件}
+    零向量应单独处理，以避免除零。
+  \end{alertblock}
+  \begin{enumerate}
+    \item 检查输入数据。
+    \item 计算范数并归一化。
+    \item 验证输出并记录异常。
+  \end{enumerate}
+\end{frame}
+
+\section{流程与实现}
+
+\begin{frame}{处理流程}
+  \centering
+  \begin{tikzpicture}[node distance=5mm]
+    \node[lecture step] (input) {输入\\原始数据};
+    \node[lecture step,right=of input] (features) {预处理\\特征表示};
+    \node[lecture focus,right=of features] (method) {核心算法\\计算结果};
+    \node[lecture step,right=of method] (output) {输出\\结果与指标};
+    \draw[lecture flow] (input) -- (features);
+    \draw[lecture flow] (features) -- (method);
+    \draw[lecture flow] (method) -- (output);
+  \end{tikzpicture}
+  \par\bigskip
+  {\small\color{Navy}蓝色：通用步骤\qquad\textcolor{Accent}{红色：核心步骤}}
+\end{frame}
+
+% 含 lstlisting 的 frame 要保留 [fragile]。
+\begin{frame}[fragile]{代码示例：向量归一化}
+\begin{lstlisting}[style=lecture,language=Python]
+from math import sqrt
+
+def normalize(values):
+    norm = sqrt(sum(x * x for x in values))
+    if norm == 0:
+        raise ValueError("zero vector")
+    return [x / norm for x in values]
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}{算法：向量归一化}
+  \begin{block}{算法 1\quad Normalize}
+    \begin{algorithmic}[1]
+      \Require 非零向量 $x=(x_1,\ldots,x_n)$
+      \Ensure 单位向量 $y$
+      \State $r\gets\sqrt{\sum_{i=1}^{n} x_i^2}$
+      \For{$i=1,\ldots,n$}
+        \State $y_i\gets x_i/r$
+      \EndFor
+      \State \Return $y$
+    \end{algorithmic}
+  \end{block}
+\end{frame}
+
+\section{结果与总结}
+
+\begin{frame}{实验结果}
+  \centering
+  \renewcommand{\arraystretch}{1.32}
+  \begin{tabular}{@{}lrrr@{}}
+    \toprule
+    \textbf{方法} & \textbf{准确率} & \textbf{召回率} & \textbf{用时（秒）} \\
+    \midrule
+    基线方法 & 81.2\% & 79.4\% & 1.24 \\
+    改进方法 & \textbf{86.7\%} & \textbf{85.1\%} & 1.38 \\
+    \bottomrule
+  \end{tabular}
+  \par\medskip{\footnotesize 数值仅用于演示表格样式。}
+\end{frame}
+
+\begin{frame}{总结}
+  \begin{itemize}
+    \item 明确输入、输出和边界条件。
+    \item 用流程图解释方法，用伪代码说明实现。
+    \item 在统一条件下比较实验结果。
+  \end{itemize}
+\end{frame}
+
+\ChapterPage{谢谢}
+\end{document}
